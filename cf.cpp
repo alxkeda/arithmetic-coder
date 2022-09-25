@@ -1,10 +1,8 @@
 #include "cf.h"
 
-Symbol::Symbol() {
-    frequency = 1;
-}
+Symbol::Symbol() : frequency(1) {}
 
-std::unordered_map<char, Symbol> Metadata::mk_cf_table(std::string s) { // iterates through ordered map for consistent decoding and encoding tables without the need to store extra metadata
+std::unordered_map<char, Symbol> Metadata::mk_cf_table(std::string s) {
 
     std::map<char, Symbol> metadata = Metadata::collect_ordered_freq(s);
 
@@ -24,12 +22,6 @@ std::unordered_map<char, Symbol> Metadata::mk_cf_table(std::string s) { // itera
 
 }
 
-void Metadata::print_table(std::unordered_map<char, Symbol> metadata) { // prints tables for debugging
-    for(std::unordered_map<char, Symbol>::const_iterator character = metadata.begin(); character != metadata.end(); ++character) {
-        std::cout << character->first << ":\n" << "{ frequency: " << character->second.frequency << std::endl << "lower bound: " << character->second.low << std::endl << "higher bound: " << character->second.high << std::endl << " }" << std::endl;
-    }
-}
-
 std::map<char, Symbol> Metadata::collect_ordered_freq(std::string sequence) { // collects counts of each symbol
     std::map<char, Symbol> metadata;
     for(char character : sequence) {
@@ -40,4 +32,10 @@ std::map<char, Symbol> Metadata::collect_ordered_freq(std::string sequence) { //
         }
     }
     return metadata;
+}
+
+void Metadata::print_table(std::unordered_map<char, Symbol> metadata) {
+    for(std::unordered_map<char, Symbol>::const_iterator character = metadata.begin(); character != metadata.end(); ++character) {
+        std::cout << character->first << ":\n" << "{ frequency: " << character->second.frequency << std::endl << "lower bound: " << character->second.low << std::endl << "higher bound: " << character->second.high << std::endl << " }" << std::endl;
+    }
 }

@@ -1,8 +1,12 @@
-#include "encode.h"
+#include <iostream>
+#include <string>
+#include <unordered_map>
+#include <bitset>
+#include <cmath>
+#include <iomanip>
 
-// std::bitset<64> cast_uint64_bitset64(uint32_t input) {
-//     return output;
-// }
+#include "encode.h"
+#include "cf.h"
 
 char assign_bit(bool bit) {
     char c; if(bit == 0) { c = '0'; } else { c = '1'; }
