@@ -6,7 +6,6 @@
 
 #include "cf.h"
 #include "encode.h"
-#include "decode.h"
 
 int main() {
 
