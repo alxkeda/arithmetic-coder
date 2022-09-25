@@ -11,6 +11,7 @@
 int main() {
 
     std::ofstream output("./data/output.txt");
+    std::ofstream input_binary("./data/input_binary.txt");
     std::ifstream f("./data/input.txt");
     std::stringstream buffer;
     buffer << f.rdbuf(); std::string input = buffer.str() + "]"; // adds character end sequence
@@ -18,7 +19,8 @@ int main() {
     std::unordered_map<char, Symbol> cf_table = Metadata::mk_cf_table(input);
 
     try {
-        output << encode(input, cf_table);
+        std::string encoded = encode(input, cf_table);
+        output << encoded; input_binary << encoded;
     } catch (const char *err) {
         output.close();
         std::cerr << err << std::endl;
