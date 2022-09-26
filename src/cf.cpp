@@ -1,4 +1,4 @@
-#include "cf.h"
+#include "../include/cf.h"
 
 Symbol::Symbol() : frequency(1) {}
 

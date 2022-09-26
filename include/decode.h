@@ -6,6 +6,6 @@
 #include <cmath>
 #include <iomanip>
 
-#include "cf.h"
+#include "../include/cf.h"
 
 std::string decode(std::string sequence, std::unordered_map<char, Symbol> metadata);

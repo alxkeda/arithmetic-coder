@@ -5,12 +5,25 @@
 #include <cmath>
 #include <iomanip>
 
-#include "encode.h"
-#include "cf.h"
+#include "../include/encode.h"
+#include "../include/cf.h"
 
 char assign_bit(bool bit) {
     char c; if(bit == 0) { c = '0'; } else { c = '1'; }
     return c;
+}
+
+void shift_bounds(std::bitset<32>* h, std::bitset<32>* l) {
+    *h = *h << 1; (*h).set(0, 1);
+    *l = *l << 1; (*l).set(0, 0);     
+}
+
+std::string create_table(std::unordered_map<char, Symbol> metadata) {
+    std::string table = "]";
+    for(std::unordered_map<char, Symbol>::const_iterator character = metadata.begin(); character != metadata.end(); ++character) {
+        table.push_back(character->first);
+        table.append(std::to_string(character->second.frequency));
+    }
 }
 
 void check_underflow(std::bitset<32>* h, std::bitset<32>* l, int* underflow) {
@@ -22,11 +35,6 @@ void check_underflow(std::bitset<32>* h, std::bitset<32>* l, int* underflow) {
         (*h).set(msb, htemp); (*h).set(0, 1); (*l).set(msb, ltemp); (*l).set(0, 0); // l.set not necessary
         *underflow++;
     }
-}
-
-void shift_bounds(std::bitset<32>* h, std::bitset<32>* l) {
-    *h = *h << 1; (*h).set(0, 1);
-    *l = *l << 1; (*l).set(0, 0);     
 }
 
 void shift_output(uint32_t* high, uint32_t* low, std::string* output, int* underflow) {
@@ -104,9 +112,9 @@ std::string encode(std::string sequence, std::unordered_map<char, Symbol> metada
             end(low, &output);
         }
 
-
-
     }
+
+    output.append(create_table(metadata));
 
     return output;
 

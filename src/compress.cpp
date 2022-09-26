@@ -4,16 +4,16 @@
 #include <fstream>
 #include <sstream>
 
-#include "cf.h"
-#include "encode.h"
+#include "../include/cf.h"
+#include "../include/encode.h"
 
 int main() {
 
-    std::ofstream output("./data/output.txt");
-    std::ofstream input_binary("./data/input_binary.txt");
-    std::ifstream f("./data/input.txt");
+    std::ofstream output("../data/output.txt");
+    std::ofstream input_binary("../data/input_binary.txt");
+    std::ifstream f("../data/input.txt");
     std::stringstream buffer;
-    buffer << f.rdbuf(); std::string input = buffer.str() + "]"; // end character, for encoding
+    buffer << f.rdbuf(); std::string input = buffer.str(); // end character, for encoding
 
     std::unordered_map<char, Symbol> cf_table = Metadata::mk_cf_table(input);
 
