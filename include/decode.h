@@ -8,4 +8,4 @@
 
 #include "../include/cf.h"
 
-std::string decode(std::string sequence, std::unordered_map<char, Symbol> metadata);
+std::string decode(std::string sequence);

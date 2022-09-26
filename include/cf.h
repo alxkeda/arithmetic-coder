@@ -11,6 +11,7 @@ class Symbol {
         uint32_t high;
         uint32_t low;
         Symbol();
+        Symbol(uint32_t high, uint32_t low);
 };
 
 class Metadata {

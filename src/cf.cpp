@@ -1,6 +1,7 @@
 #include "../include/cf.h"
 
 Symbol::Symbol() : frequency(1) {}
+Symbol::Symbol(uint32_t high, uint32_t low) : high(high), low(low) {}
 
 std::unordered_map<char, Symbol> Metadata::mk_cf_table(std::string s) {
 
