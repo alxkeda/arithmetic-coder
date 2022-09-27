@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <fstream>
 #include <sstream>
+#include <iomanip>
 
 #include "../include/cf.h"
 #include "../include/encode.h"
@@ -14,6 +15,8 @@ int main() {
     std::ifstream f("../data/input.txt");
     std::stringstream buffer;
     buffer << f.rdbuf(); std::string input = buffer.str() + ']'; // end character, for encoding
+
+    std::cout << std::fixed << std::setprecision(2) << std::endl;
 
     try {
         std::string encoded = encode(input);

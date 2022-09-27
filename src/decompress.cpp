@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <fstream>
 #include <sstream>
+#include <iomanip>
 
 #include "../include/cf.h"
 #include "../include/decode.h"
@@ -13,6 +14,8 @@ int main() {
     std::ifstream f("../data/input_binary.txt");
     std::stringstream buffer;
     buffer << f.rdbuf(); std::string input = buffer.str();
+    
+    std::cout << std::fixed << std::setprecision(2) << std::endl;
 
     try {
         std::string decoded = decode(input);

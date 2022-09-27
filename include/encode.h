@@ -5,7 +5,6 @@
 #include <unordered_map>
 #include <bitset>
 #include <cmath>
-#include <iomanip>
 
 #include "../include/cf.h"
 

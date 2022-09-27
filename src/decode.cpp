@@ -2,14 +2,17 @@
 #include <unordered_map>
 #include <bitset>
 #include <cmath>
-#include <iomanip>
 
 #include "../include/decode.h"
 #include "../include/cf.h"
 
-void shift_bounds(std::bitset<32>* h, std::bitset<32>* l) {
-    *h = *h << 1; (*h).set(0, 1);
-    *l = *l << 1; (*l).set(0, 0);     
+void shift_bounds(uint32_t* h, uint32_t* l) {
+    *h = *h << 1; *h += 1;
+    *l = *l << 1; *l += 0;
+}
+
+void shift_bound(uint32_t* w) {
+    *w = *w << 1; *w += 1;
 }
 
 std::unordered_map<char, Symbol> create_table(std::string sequence) {
@@ -38,74 +41,46 @@ std::unordered_map<char, Symbol> create_table(std::string sequence) {
     return metadata;
 }
 
-void check_underflow(std::bitset<32>* h, std::bitset<32>* l) {
-    int msb = (*h).size() - 1; int smsb = (*h).size() - 2;
-    while((*h)[msb] != (*h)[smsb] && (*l)[msb] != (*l)[smsb] && (*h)[msb] != (*l)[msb]) {
-        bool htemp = (*h)[msb]; bool ltemp = (*l)[msb];
-        (*h) = ((*h) << 2) >> 1;
-        (*l) = ((*l) << 2) >> 1;
-        (*h).set(msb, htemp); (*h).set(0, 1); (*l).set(msb, ltemp); (*l).set(0, 0); // l.set not necessary
-    }
-}
-
-int shift_output(uint64_t* high, uint32_t* low) {
-    int num = 0;
-    std::bitset<32> h(*high);
-    std::bitset<32> l(*low);
-    int msb = h.size() - 1;
-
-    while(h[msb] == l[msb]) { // outputs all matching bits
-        shift_bounds(&h, &l);
-        num++;
-    }
-
-    check_underflow(&h, &l); // updates underflow counter
-    *high = h.to_ulong(); *low = l.to_ulong();
-
-    return num;
-}
-
 std::string decode(std::string sequence) {
 
     std::string* s = &sequence;
 
-    std::cout << std::fixed << std::setprecision(2) << std::endl; // sets output to two decimal precision for progress indicator
-
     uint32_t num_decoded = 0;
     std::string output;
-    char c; bool index_err = 1;
+    char c;
+    bool index_err = 1;
+
     std::unordered_map<char, Symbol> metadata = create_table(sequence);
 
-    int32_t i = 0;
-    uint32_t window;
+    const int MSB = pow(2, 5) - 1;
     
-    uint64_t high = pow(2, 32) - 1;
+    uint32_t high = pow(2, 32) - 2;
     uint32_t low = 0;
-    uint64_t range;
+    uint32_t range;
     long double character_range;
 
     uint32_t cf = Metadata::count_cf_freq(metadata, true);
-    int32_t decode_len = sequence.find(']');
+    int32_t len = sequence.find(']');
 
-    if(i >= decode_len - 32) { // deals with the case of very small encodings
-        int num = 32 - decode_len;
-        for(int i=0; i<num; i++) {
-            (*s).insert(decode_len, "1");
-        }
-        decode_len = 32;
+    uint32_t window;
+    int num = 32 - len;
+    int32_t i;
+    if(num > 0) {
+        i = len - 32;
+    } else {
+        i = 0;
     }
 
     while(true) {
 
-        int num = 0;
-
-        if(i > decode_len) {
-            throw std::logic_error("Encoding failed");
-        } else {
-            window = std::stoul(sequence.substr(i, 32), nullptr, 2);
+        for(int n=0; n<num; n++) {
+            (*s).insert(sequence.find("]"), "1");
+            i += 1;
         }
+        num = 0;
 
-        character_range = (long double)(((uint64_t)cf * (uint64_t)(window - low + 1) - 1.0) / (long double)((high + 1) - low));
+        window = std::stoul(sequence.substr(i, 32), nullptr, 2);
+        character_range = (long double)(((uint64_t)cf * (uint64_t)(window - low + 1) - 1) / (long double)((high + 1) - low));
 
         for(std::unordered_map<char, Symbol>::const_iterator iter = metadata.begin(); iter != metadata.end(); ++iter) {
             c = iter->first;
@@ -125,27 +100,35 @@ std::string decode(std::string sequence) {
         }
 
         range = high - low;
-        high = low + (
-            (long double)range * ((long double)metadata.at(c).high / (long double)cf)
-        );
-        low = low + (
-            (long double)range * ((long double)metadata.at(c).low / (long double)cf)
-        );
-
+        high = low + ((long double)range * ((long double)metadata.at(c).high / (long double)cf));
+        low = low + ((long double)range * ((long double)metadata.at(c).low / (long double)cf));
+        
         if(high <= low) {
-            std::cout << "\rDecoding failed at \"" << sequence[i] << "\"" << ". Percent encoded: " << 100 * (long double)num_decoded / decode_len << std::endl;
+            std::cout << "\rDecoding failed at \"" << sequence[i] << "\"" << ". Percent encoded: " << 100 * (long double)num_decoded / len << std::endl;
             throw std::logic_error("Upper and lower bounds crossed.\n");
         }
 
-        num = shift_output(&high, &low);
-
-        i += num; num_decoded += num;
-
-        for(int i=0; i<num; i++) {
-            (*s).insert(sequence.find("]"), "1");
+        while(true) {
+            std::bitset<32> high_bits(high);
+            std::bitset<32> low_bits(low);
+            std::bitset<32> window_bits(window);
+            if(high_bits[MSB] == low_bits[MSB]) {
+                shift_bounds(&high, &low);
+                shift_bound(&window); 
+                num += 1;
+            } else if(high_bits[MSB - 1] == 0 && low_bits[MSB - 1] == 1) {
+                high_bits = (high_bits << 2) >> 1; high_bits.set(MSB, 1); high = high_bits.to_ulong() + 1;
+                low_bits = (low_bits << 2) >> 1; low_bits.set(MSB, 0); low = low_bits.to_ulong() + 0;
+                bool window_temp = window_bits[MSB];
+                window_bits = (window_bits << 2) >> 1; window_bits.set(MSB, window_temp); window = window_bits.to_ulong() + 1;
+                (*s).erase(i + num + 1, 1); (*s).insert(sequence.find(']'), "1");
+                // num += 1;
+            } else {
+                break;
+            }
         }
 
-        std::cout << "\rProgress: " << 100 * (long double)num_decoded / decode_len << "%";
+        std::cout << "\rProgress: " << 100 * (long double)i / (long double)len << "%";
 
     }
 

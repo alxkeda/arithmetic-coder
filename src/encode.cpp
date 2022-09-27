@@ -3,7 +3,6 @@
 #include <unordered_map>
 #include <bitset>
 #include <cmath>
-#include <iomanip>
 
 #include "../include/encode.h"
 #include "../include/cf.h"
@@ -13,11 +12,9 @@ char assign_bit(bool bit) {
     return c;
 }
 
-void shift_bounds(std::bitset<32>* h, std::bitset<32>* l) {
-    *h = *h << 1;
-    (*h).set(0, 1);
-    *l = *l << 1;
-    (*l).set(0, 0);     
+void shift_bounds(uint32_t* h, uint32_t* l) {
+    *h = *h << 1; *h += 1;
+    *l = *l << 1; *l += 0;     
 }
 
 std::string create_table(std::unordered_map<char, Symbol> metadata) {
@@ -31,98 +28,70 @@ std::string create_table(std::unordered_map<char, Symbol> metadata) {
     return table;
 }
 
-void check_underflow(std::bitset<32>* h, std::bitset<32>* l, int* underflow) {
-    int msb = (*h).size() - 1; int smsb = (*h).size() - 2;
-    while((*h)[msb] != (*h)[smsb] && (*l)[msb] != (*l)[smsb] && (*h)[msb] != (*l)[msb]) {
-        bool htemp = (*h)[msb]; bool ltemp = (*l)[msb];
-        (*h) = ((*h) << 2) >> 1;
-        (*l) = ((*l) << 2) >> 1;
-        (*h).set(msb, htemp); (*h).set(0, 1); (*l).set(msb, ltemp); (*l).set(0, 0); // l.set not necessary
-        *underflow += 1;
-        std::cout << "underflow" << std::endl;
-    }
-}
-
-void shift_output(uint32_t* high, uint32_t* low, std::string* output, int* underflow) {
-    std::bitset<32> h(*high);
-    std::bitset<32> l(*low);
-    int msb = h.size() - 1;
-
-    if(h[msb] == l[msb] && *underflow > 0) { // deals with underflow, if any
-        char bit = assign_bit(h[msb]); char bit_neg = assign_bit(!h[msb]);
-        (*output).push_back(bit);
-        shift_bounds(&h, &l);      
-        for(int i=0; i<*underflow; i++) {
-            std::cout << "print" << std::endl;
-            (*output).push_back(bit_neg);
-        }
-        *underflow = 0;
-    }
-
-    while(h[msb] == l[msb]) { // outputs all matching bits
-        char bit = assign_bit(h[msb]);
-        (*output).push_back(bit);
-        shift_bounds(&h, &l);
-    }
-
-    check_underflow(&h, &l, underflow); // updates underflow counter
-    *high = h.to_ulong(); *low = l.to_ulong();
-}
-
 void end(uint32_t low, std::string* output) { // is called when the end character is read, then creates the shortest binary sequence which will place our output between the two current ranges
-    (*output).push_back('0');
-    
     std::bitset<32> l(low);
-    uint32_t i = l.size();
+    (*output).append("01");
+    int i = l.size() - 3;
     while(l[i] != 0) {
-        i--;
         (*output).push_back('1');
+        i--;
     }
 }
 
 std::string encode(std::string sequence) {
 
-    std::cout << std::fixed << std::setprecision(2) << std::endl; // sets output to two decimal precision for progress indicator
-
     uint32_t num_encoded = 0;
     std::string output;
+
     std::unordered_map<char, Symbol> metadata = Metadata::mk_cf_table(sequence);
+
+    const int MSB = pow(2, 5) - 1;
 
     uint32_t high = pow(2, 32) - 1;
     uint32_t low = 0;
     uint32_t range;
-
     int underflow = 0;
+
     uint32_t cf = Metadata::count_cf_freq(metadata);
     uint32_t len = sequence.length(); // cf = len for encoding
 
     for(char character : sequence) {
 
         range = high - low;
-        high = low + (
-            (long double)range * ((long double)metadata.at(character).high / (long double)cf)
-        );
-        low = low + (
-            (long double)range * ((long double)metadata.at(character).low / (long double)cf)
-        );
+        high = low + ((long double)range * ((long double)metadata.at(character).high / (long double)cf));
+        low = low + ((long double)range * ((long double)metadata.at(character).low / (long double)cf));
         
         if(high <= low) {
             std::cout << "\rEncoding failed at \"" << character << "\"" << ". Percent encoded: " << 100 * (long double)num_encoded / len << std::endl;
             throw std::logic_error("Upper and lower bounds crossed.\n");
         }
 
-        shift_output(&high, &low, &output, &underflow);
+        while(true) {
+            std::bitset<32> high_bits(high);
+            std::bitset<32> low_bits(low);
+            if(high_bits[MSB] == low_bits[MSB]) {
+                output.push_back(assign_bit(high_bits[MSB]));
+                shift_bounds(&high, &low);
+                int uf = underflow;
+                for(int u=0; u<uf; u++) {
+                    output.push_back(assign_bit(!high_bits[MSB]));
+                    underflow = 0;
+                }
+            } else if(high_bits[MSB - 1] == 0 && low_bits[MSB - 1] == 1) {
+                high_bits = (high_bits << 2) >> 1; high_bits.set(MSB, 1); high = high_bits.to_ulong() + 1;
+                low_bits = (low_bits << 2) >> 1; low_bits.set(MSB, 0); low = low_bits.to_ulong() + 0;
+                underflow += 1;
+            } else {
+                break;
+            }
+        }
 
         num_encoded++;
-        std::cout << "\rProgress: " << 100 * (long double)num_encoded / cf << "%";
-
-        if(character == ']') {
-            std::cout << std::endl << "Encoding finished." << "\n\n";
-            end(low, &output);
-        }
+        std::cout << "\rProgress: " << 100 * (long double)num_encoded / len << "%";
 
     }
 
+    end(low, &output);
     output.append(create_table(metadata));
 
     return output;
