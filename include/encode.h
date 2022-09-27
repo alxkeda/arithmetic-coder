@@ -9,4 +9,4 @@
 
 #include "../include/cf.h"
 
-std::string encode(std::string sequence, std::unordered_map<char, Symbol> metadata);
+std::string encode(std::string sequence);

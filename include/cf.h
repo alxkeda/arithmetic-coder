@@ -18,5 +18,7 @@ class Metadata {
     public:
         static std::unordered_map<char, Symbol> mk_cf_table(std::string s);
         static std::map<char, Symbol> collect_ordered_freq(std::string sequence);
+        static uint32_t count_cf_freq(std::unordered_map<char, Symbol> metadata);
+        static uint32_t count_cf_freq(std::unordered_map<char, Symbol> metadata, bool is_decoding);
         static void print_table(std::unordered_map<char, Symbol> metadata);
 };

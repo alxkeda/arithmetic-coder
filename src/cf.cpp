@@ -35,8 +35,25 @@ std::map<char, Symbol> Metadata::collect_ordered_freq(std::string sequence) { //
     return metadata;
 }
 
+uint32_t Metadata::count_cf_freq(std::unordered_map<char, Symbol> metadata) {
+    uint32_t count = 0;
+    for(std::unordered_map<char, Symbol>::const_iterator iter = metadata.begin(); iter != metadata.end(); ++iter) {
+        count += iter->second.frequency;
+    }    
+    return count;
+}
+
+uint32_t Metadata::count_cf_freq(std::unordered_map<char, Symbol> metadata, bool is_decoding) {
+    uint32_t count = 0;
+    for(std::unordered_map<char, Symbol>::const_iterator iter = metadata.begin(); iter != metadata.end(); ++iter) {
+        count += (iter->second.high - iter->second.low);
+    }    
+    return count;
+}
+
+
 void Metadata::print_table(std::unordered_map<char, Symbol> metadata) {
-    for(std::unordered_map<char, Symbol>::const_iterator character = metadata.begin(); character != metadata.end(); ++character) {
-        std::cout << character->first << ":\n" << "{ frequency: " << character->second.frequency << std::endl << "lower bound: " << character->second.low << std::endl << "higher bound: " << character->second.high << std::endl << " }" << std::endl;
+    for(std::unordered_map<char, Symbol>::const_iterator iter = metadata.begin(); iter != metadata.end(); ++iter) {
+        std::cout << iter->first << ":\n" << "{ frequency: " << iter->second.frequency << std::endl << "lower bound: " << iter->second.low << std::endl << "higher bound: " << iter->second.high << std::endl << " }" << std::endl;
     }
 }
