@@ -49,7 +49,7 @@ std::string encode(std::string sequence) {
 
     uint32_t high = pow(2, 32) - 1;
     uint32_t low = 0;
-    uint32_t range;
+    long double range;
     int underflow = 0;
 
     uint32_t cf = Metadata::count_cf_freq(metadata);
@@ -57,7 +57,7 @@ std::string encode(std::string sequence) {
 
     for(char character : sequence) {
 
-        range = high - low;
+        range = ((long double)high + 1.0) - (long double)low;
         high = low + ((long double)range * ((long double)metadata.at(character).high / (long double)cf));
         low = low + ((long double)range * ((long double)metadata.at(character).low / (long double)cf));
         

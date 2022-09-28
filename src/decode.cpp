@@ -56,7 +56,7 @@ std::string decode(std::string sequence) {
     
     uint32_t high = pow(2, 32) - 2;
     uint32_t low = 0;
-    uint32_t range;
+    long double range;
     long double character_range;
 
     uint32_t cf = Metadata::count_cf_freq(metadata, true);
@@ -99,9 +99,9 @@ std::string decode(std::string sequence) {
             output.push_back(c);
         }
 
-        range = high - low;
-        high = low + ((long double)range * ((long double)metadata.at(c).high / (long double)cf));
-        low = low + ((long double)range * ((long double)metadata.at(c).low / (long double)cf));
+        range = ((long double)high + 1.0) - (long double)low;
+        high = low + (range * ((long double)metadata.at(c).high / (long double)cf));
+        low = low + (range * ((long double)metadata.at(c).low / (long double)cf));
         
         if(high <= low) {
             std::cout << "\rDecoding failed at \"" << sequence[i] << "\"" << ". Percent encoded: " << 100 * (long double)num_decoded / len << std::endl;
