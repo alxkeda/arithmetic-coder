@@ -40,7 +40,7 @@ void end(uint32_t low, std::string* output) { // is called when the end characte
 
 std::string encode(std::string sequence) {
 
-    uint32_t num_encoded = 0;
+    // uint32_t num_encoded = 0;
     std::string output;
 
     std::unordered_map<char, Symbol> metadata = Metadata::mk_cf_table(sequence);
@@ -62,7 +62,8 @@ std::string encode(std::string sequence) {
         low = low + ((long double)range * ((long double)metadata.at(character).low / (long double)cf));
         
         if(high <= low) {
-            std::cout << "\rEncoding failed at \"" << character << "\"" << ". Percent encoded: " << 100 * (long double)num_encoded / len << std::endl;
+            // << ". Percent encoded: " << 100 * (long double)num_encoded / len
+            std::cout << "\rEncoding failed at \"" << character << "\"" << std::endl;
             throw std::logic_error("Upper and lower bounds crossed.\n");
         }
 
@@ -86,8 +87,8 @@ std::string encode(std::string sequence) {
             }
         }
 
-        num_encoded++;
-        std::cout << "\rProgress: " << 100 * (long double)num_encoded / len << "%";
+        // num_encoded++;
+        // std::cout << "\rProgress: " << 100 * (long double)num_encoded / len << "%";
 
     }
 

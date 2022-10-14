@@ -4,9 +4,23 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
+#include <processthreadsapi.h>
 
 #include "../include/cf.h"
 #include "../include/encode.h"
+
+const double ENCODING = 6.0;
+
+double retrieve_cpu_time(){
+    FILETIME a, b, c, d;
+    if(GetProcessTimes(GetCurrentProcess(), &a, &b, &c, &d) != 0) {
+        return
+            (double)(d.dwLowDateTime |
+            ((unsigned long long)d.dwHighDateTime << 32)) * 0.0000001;
+    } else {
+        return 1;
+    }
+}
 
 int main() {
 
@@ -16,10 +30,13 @@ int main() {
     std::stringstream buffer;
     buffer << f.rdbuf(); std::string input = buffer.str() + ']'; // end character, for encoding
 
-    std::cout << std::fixed << std::setprecision(2) << std::endl;
+    std::cout << std::fixed << std::setprecision(8) << std::endl;
 
     try {
+        double start = retrieve_cpu_time();
         std::string encoded = encode(input);
+        double end = retrieve_cpu_time();
+        std::cout << (double)input.length() * ENCODING / (double)encoded.find(']') << std::endl << end - start << std::endl;
         output << encoded; input_binary << encoded;
     } catch (const char *err) {
         output.close();

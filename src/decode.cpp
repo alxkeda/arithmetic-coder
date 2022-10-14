@@ -128,7 +128,7 @@ std::string decode(std::string sequence) {
             }
         }
 
-        std::cout << "\rProgress: " << 100 * (long double)i / (long double)len << "%";
+        std::cout << "\rProgress: " << 100.0 * ((long double)i + 32.0) / len << "%";
 
     }
 
