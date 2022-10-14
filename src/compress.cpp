@@ -9,7 +9,7 @@
 #include "../include/cf.h"
 #include "../include/encode.h"
 
-const double ENCODING = 8.0;
+// const double ENCODING = ;
 // provide the original encoding size above then compile
 
 double retrieve_cpu_time(){
