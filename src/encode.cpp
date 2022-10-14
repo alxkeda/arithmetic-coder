@@ -21,9 +21,13 @@ std::string create_table(std::unordered_map<char, Symbol> metadata) {
     std::string table = "]";
     for(std::unordered_map<char, Symbol>::const_iterator iter = metadata.begin(); iter != metadata.end(); ++iter) {
         table.push_back(iter->first);
+        table.push_back(' ');
         table.append(std::to_string(iter->second.high));
+        table.push_back(' ');
         table.push_back(iter->first);
+        table.push_back(' ');
         table.append(std::to_string(iter->second.low));
+        table.push_back(' ');
     }
     return table;
 }

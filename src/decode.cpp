@@ -20,20 +20,24 @@ std::unordered_map<char, Symbol> create_table(std::string sequence) {
     int i = sequence.find(']') + 1;
     while(i < sequence.length()) {
         char c = sequence[i];
-        if(!isdigit(sequence[i])) {
-            int d = 1;
+        if(true) {
+            int d = 2;
             while(isdigit(sequence[i + d])) {
                 d++;
             }
-            int high = std::stoi(sequence.substr(i + 1, d));
-            i += d;
+            // std::string test = sequence.substr(i + 2, d - 2);
+            // std::cout << test << std::endl;
+            int high = std::stoi(sequence.substr(i + 2, d - 2));
+            i += d + 1;
             
-            d = 1;
+            d = 2;
             while(isdigit(sequence[i + d])) { // repeats
                 d++;
             }
-            int low = std::stoi(sequence.substr(i + 1, d));
-            i += d;
+            // test = sequence.substr(i + 1, d);
+            // std::cout << test << std::endl;
+            int low = std::stoi(sequence.substr(i + 2, d - 2));
+            i += d + 1;
 
             metadata[c] = Symbol(high, low);
         }
